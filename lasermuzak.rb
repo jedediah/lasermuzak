@@ -1,18 +1,5 @@
 #!/usr/bin/env ruby
 
-=begin
-
-feed = inches/minute
-dpi = dots/inch
-pitch = dots/second
-minute = 60*seconds
-a440 = 440*pitch
-tempo = beats/minute
-length = notes/(4*beats)
-
-4*beats*length = notes
-beats = notes/(4*length)
-=end
 
 class Hash
   def map_pairs &block
