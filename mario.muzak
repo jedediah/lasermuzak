@@ -1,0 +1,108 @@
+#                 L A S E R M U Z A K ! ! ! ! 1
+#
+#
+#   === usage ===
+#
+#   ruby lasermuzak.rb <file_containing.muzak> > output.gcode
+#
+#
+#   === Syntax ===
+#
+#                 The following commands are used to represent music. They are
+#                 executed in the order they appear. They can be seperated by
+#                 whitespace, but they don't have to be. Lines beginning with
+#                 the hash character (#) are ignored.
+#
+#   :A            Switch to axis A, which can be any single letter. Each axis
+#                 has its own track that plays in sync with all other axes.
+#                 New notes and rests are added to the end of the track for
+#                 the current axis. All other commands affect global values
+#                 which apply across all axes.
+#                 Default: x
+#
+#   P[L][!|-]     Play a note of pitch P, which can be any of the following:
+#                 c c# d d# e f f# g g# a a# b
+#                 L is an optional note length, which overrides the default
+#                 ! and - play the note staccato and legato, respectively
+#
+#   .[L]          Play a rest (silence) with optinal length
+#
+#   oN            Set octave to N. Middle C is in octave 4
+#   >             Move up one octave
+#   <             Move down one octave
+#                 Default: 4
+#
+#   tN            Set tempo to N quarter notes per minute
+#                 Default: 120
+#
+#   lR            Set default note length to 1/R of a whole note. R is
+#                 a rational number and can be written as a fraction.
+#                 For example, 4 is a quarter note, 8 is an eighth note,
+#                 16/3 is a dotted eighth note and 6 is a triplet quarter note.
+#                 Default: 4
+#
+#   sR            Set note dynamics to R, which is a rational number
+#                 representing the actual time that notes are held relative
+#                 to their logical length. Valid alues are 0 < R <= 1
+#                 Default: 1
+
+
+#         | . . . : . . . : . . . : . . . | . . . : . . . : . . . : . . . |
+:y l16 t100
+  o4 s7/8 e e . e . c e . g . . . . . . .
+
+       s1 c . .<g . . e . . a . b . a g#. g>c . e a . f g . e . c d<b>. .
+          c . .<g . . e . . a . b . a g#. g>c . e a . f g . e . c d<b>. .
+
+          . . g f#f d#. e .<g#a>c .<a>c d . . g f#f d#. e .>c . c c<. . .
+          . . g f#f d#. e .<g#a>c .<a>c d . . d#. . d . . c . . . . . . .
+
+          . . g f#f d#. e .<g#a>c .<a>c d . . g f#f d#. e .>c . c c<. . .
+          . . g f#f d#. e .<g#a>c .<a>c d . . d#. . d . . c . . . . . . .
+
+          c<a>. c . c d . e c .<a g . . .>c<a .>c . c d e . . . . . . . .
+          c<a>. c . c d . e c .<a g . . .>e e . e . c e . g . . . . . . .
+
+          e c .<g . . g#. a>f . f<a . . .
+                                      l12 b> a24.24a24.24a  g  f
+                                                      l16 e c .<a g . . . 
+          e c .<g . . g#. a>f . f<a . . .
+                                      l12 b> f24.24f24.24f  e  d
+                                                      l16 c . . . . . . . 
+       s1 c . .<g . . e . . a . b . a g#. g>c . e a . f g . e . c d<b>. .
+          c . .<g . . e . . a . b . a g#. g>c . e a . f g . e . c d<b>. .
+
+          . . g f#f d#. e .<g#a>c .<a>c d . . g f#f d#. e .>c . c c<. . .
+          . . g f#f d#. e .<g#a>c .<a>c d . . d#. . d . . c . . . . . . .
+
+          c . .<g . . e .
+                  l12 t80 a  b  a t60 g# a# g#  g2
+
+#         | . . . : . . . : . . . : . . . | . . . : . . . : . . . : . . . |
+:w l16 t100
+  o2 s7/8 d d . d . d d . g . . . g . . .
+
+  o2  s1  c . .<g . . e . . a . b . a g#. g>c . e a . f g . e . c d<b>. .
+          c . .<g . . e . . a . b . a g#. g>c . e a . f g . e . c d<b>. .
+
+          c . . e . . g . f . . a . .>c<. c . . e . . g . . g . g g .<g>.
+          c . . e . . g . f . . a . .>c<. . .<g#. . a#. .>c . . g g .<g>.
+
+          c . . e . . g . f . . a . .>c<. c . . e . . g . . g . g g .<g>.
+          c . . e . . g . f . . a . .>c<. . .<g#. . a#. .>c . . c c .<g>.
+
+ o1 l16/3 g#   >d#    f8  g     e     c8 <g#   >d#    f8  g     c    <g8
+    l4    f       f#      g       a   l16 d d . d . d d . g . . .<g>. . .
+
+ o2       c . . e . . g . f . . a . .>c<. g . . b . .>d . c . .<g . .<g>.
+          c . . e . . g . f . . a . .>c<.
+                                     l12 <g  g  g  g  a  b
+                                                     l16 >c<g . g c . . . 
+  o2  s1  c . .<g . . e . . a . b . a g#. g>c . e a . f g . e . c d<b>. .
+          c . .<g . . e . . a . b . a g#. g>c . e a . f g . e . c d<b>. .
+
+          c . . e . . g . f . . a . .>c<. c . . e . . g . . g . g g .<g>.
+          c . . e . . g . f . . a . .>c<. . .<g#. . a#. .>c . . g g .<g>.
+
+ o2       c . .<g . . e .
+                   l4 t80 f t60 g#  >c2 
