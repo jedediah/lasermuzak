@@ -1,6 +1,28 @@
 #!/usr/bin/env ruby
 
 
+
+###############################################################
+# These are the parameters for your CNC machine, which you set.
+# You may also have to fiddle with the settings for your
+# machine to get a nice sound out of it. Try increasing the
+# "maximum acceleration" a lot.
+
+# Which axes do you want to play muzak with?
+  AXES = [:x,:y,:w]
+
+# Dots Per Inch of your stepper motors, or whatever you have
+  DPI = {:x => 500.0, :y => 500.0, :w => 2000.0}
+
+# Boundaries of your machine
+  BOUNDS = {:x => 0.5..23.0, :y => 0.5..17.5, :w => -1.0..0.0}
+
+# That's the end of things you set (unless you're brave).
+# Now, the magic begins!
+###############################################################
+
+
+
 class Hash
   def map_pairs &block
     r = {}
@@ -52,8 +74,6 @@ SCALE = {                   # valid notes that can appear in the muzak
   "b"  => 11.0
 } 
 
-AXES = [:x,:y,:w]
-
 $tempo = 120.to_r            # quarter notes per minute
 $length = 4.to_r             # logical note length in 1/whole notes
 $octave = 4.0                # logical octave, c-4 is middle c
@@ -66,58 +86,64 @@ $minutes = Hash.new 0.to_r   # time index in minutes for each axis while reading
 $events = []
 
 # append an event with given frequency and duration
-def add_event freq, minutes
+def add_event freq, minutes, score=nil
   $events << {
     :minutes => $minutes[$axis],  # absolute time index in minutes
     :axis => $axis,               # axis
-    :freq => freq                 # frequency in Hz
+    :freq => freq,                # frequency in Hz
+    :score => score               # musical score for this event
   }
 
   $minutes[$axis] += minutes
 end
 
 def note p, l, s
-  add_event pitch_to_freq(p,$octave),                          # frequency
-            length_to_minutes(l||$length, $tempo, s||$dynamics)    # duration (minutes)
+  l = (l && l.to_r) || $length
+  s = (s && DYN[s]) || $dynamics
+
+  add_event pitch_to_freq(SCALE[p],$octave),      # frequency
+            length_to_minutes(l,$tempo,s),        # duration (minutes)
+            "#{$axis}: #{p}#{$octave} l#{l} s#{s}"
   
-  add_event 0.0, length_to_minutes(l||$length, $tempo, 1-(s||$dynamics)) # unless DYNAMICS == 1
+  add_event 0.0, length_to_minutes(l,$tempo,1-s)  # note off
 end
 
 def rest l
+  l = (l && l.to_r) || $length
   add_event 0.0,
-            length_to_minutes(l||$length, $tempo, 1.to_r)
+            length_to_minutes(l,$tempo,1.to_r),
+            "#{$axis}: .#{l}"
 end
 
 DYN = {"!" => 0.5.to_r, "-" => 1.to_r}
 
 GRAMMAR = {
-  /^\s*([a-g]#?)([\d\/]+)?(!|-)?/ => lambda {|n,l,s| note(SCALE[n], l&&l.to_r, DYN[s]) },
-  /^\s*o(\d+)/ => lambda {|o| $octave = o.to_i },
-  /^\s*>/ => lambda { $octave += 1 },
-  /^\s*</ => lambda { $octave -= 1 },
-  /^\s*l([\d\/]+)/ => lambda {|l| $length = l.to_r },
-  /^\s*\.([\d\/]+)?/ => lambda {|l| rest(l && l.to_r) },
-  /^\s*t([\d]+)/ => lambda {|t| $tempo = t.to_r },
-  /^\s*s([\d\/]+)/ => lambda {|d| $dynamics = d.to_r },
-  /^\s*:([A-Za-z])/ => lambda {|a| $axis = a.to_sym }
+  /^#.*/ => lambda { },                                 # comment
+  /^([a-g]#?)([\d\/]+)?(!|-)?/ => method(:note),        # note
+  /^o(\d+)/ => lambda {|o| $octave = o.to_i },          # absolute octave
+  /^>/ => lambda { $octave += 1 },                      # octave up
+  /^</ => lambda { $octave -= 1 },                      # octave down
+  /^l([\d\/]+)/ => lambda {|l| $length = l.to_r },      # note length
+  /^\.([\d\/]+)?/ => method(:rest),                     # rest
+  /^t([\d]+)/ => lambda {|t| $tempo = t.to_r },         # tempo
+  /^s([\d\/]+)/ => lambda {|s| $dynamics = s.to_r },    # dynamics
+  /^:([A-Za-z])/ => lambda {|a| $axis = a.to_sym }      # change axis
 }
 
 File.open ARGV[0] do |muzak|
   line_number = 1
 
   muzak.each_line do |line|
-    unless line[0] == "#"
-      line.downcase!
+    line.sub!(/#.*/,"")
+    line.downcase!
+    line.lstrip!
 
-      while m = GRAMMAR.find {|form, rule| line =~ form}
-        #puts "(#{m[0]} #{$~.inspect})"
-        line = $'
-        m[1][*$~[1..-1]] # call lambda associated with matched rule and pass it sub-matches
-      end
-
-      raise "line #{line_number} parse error at '#{line[0..10]}'" if line =~ /\S/
+    while form = GRAMMAR.find {|form, rule| line =~ form}
+      line = $'.lstrip     # chop form and trailing whitespace from beginning of line
+      form[1][*$~[1..-1]]  # call lambda associated with form and pass sub-matches as arguments
     end
 
+    raise "line #{line_number} parse error at '#{line[0..10]}'" unless line.empty?
     line_number += 1
   end
 end
@@ -126,10 +152,7 @@ end
 
 ### CNC Stuff ###
 
-DPI = {:x => 500.0, :y => 500.0, :w => 2000.0}
-BOUNDS = {:x => 0.5..23.0, :y => 0.5..17.5, :w => -1.0..0.0}
 MIDPOINT = BOUNDS.map_pairs{|x,r| r.first+(r.last-r.first)/2 }
-#MIDPOINT = {:x => 12.0, :y => 9.0, :w => -2.0}
 
 # Hz to inches/minute at given dpi
 def freq_to_feed(freq,dpi)
@@ -186,6 +209,7 @@ $pos = BOUNDS.map_pairs{|x,r| r.first }   # current position of each axis
 $dir = AXES.map_hash {|k| 1 }
 $freq = AXES.map_hash { 0 }               # current frequency of each axis
 $minutes = 0.0
+$score = []
 
 # sort events by time
 $events.sort! do |a,b|
@@ -202,10 +226,14 @@ print movement_to_gcode($pos)
 puts "G4 P1"
 
 $events.each do |ev|
-  puts "(#{ev[:minutes].floor}:#{"%06.3f" % (ev[:minutes]*60%60)} #{ev[:axis]}=#{ev[:freq]})"
+  # puts "(#{ev[:minutes].floor}:#{"%06.3f" % (ev[:minutes]*60%60)} #{ev[:axis]}=#{ev[:freq]})"
 
   if ev[:minutes] > $minutes && ev[:freq] != $freq[ev[:axis]]
     # event is later than the current eventset and changes the frequency of an axis
+
+    # put the score for the current moment in a comment
+    puts "(#{$score.join ' '})" unless $score.empty?
+    $score.clear
 
     # generate gcode motion from last eventset frequencies and
     # time delta between last eventset and this event
@@ -216,8 +244,9 @@ $events.each do |ev|
     $minutes = ev[:minutes]
   end
 
-  # update running frequency
+  # update running frequency and score
   $freq[ev[:axis]] = ev[:freq]
+  $score << ev[:score] if ev[:score]
 end
 
 puts "M2"

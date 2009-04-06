@@ -1,0 +1,127 @@
+#              *pew*          L A S E R M U Z A K          *pew*
+#
+#   === What? ===
+#
+#   It converts music in a chicken scratch format to numeric code (g-code) for
+#   controlling CNC machines. You'll want to edit the settings at the top of
+#   lasermuzak.rb or your robot might go berzerk and start flinging router bits
+#   at you. Which reminds me, I will not be held responsible if your robot goes
+#   berzerk and starts flinging router bits at you. Seriously, this is the kind
+#   of thing that mankind was probably just not meant to do, like flying and 
+#   buttsex.
+#
+#   === Usage ===
+#
+#   ruby lasermuzak.rb <file_containing.muzak> > output.gcode
+#
+#   Try it on this file!
+#
+#   === Syntax ===
+#
+#   The following commands are used to represent music. They are executed in
+#   the order they appear. They can be seperated by whitespace, but they don't
+#   have to be.
+#
+#   :A            Axis - switch to axis A, which can be any single letter. Each
+#                 axis has its own track that plays in sync with all other axes.
+#                 Commands are added to the end of the track for the current axis.
+#                 Default: x
+#
+#   lR            Length - set default note length to 1/R of a whole note.
+#                 R is a rational number and can be written as a fraction.
+#                 For example, 4 is a quarter note, 8 is an eighth note,
+#                 16/3 is a dotted eighth note and 6 is a triplet quarter note.
+#                 Default: 4
+#
+#   P[L][!|-]     Note - play a note of pitch P, which is any of the following:
+#
+#                 c   c#   d   d#   e   f   f#   g   g#   a   a#   b
+#
+#                 L is an optional note length, which overrides the default.
+#                 ! and - play the note staccato and legato, respectively
+#
+#   .[L]          Rest - play silence of default length, or length L if provided
+#
+#   oN            Octave - set octave to N. Middle C is in octave 4
+#                 Default: 4
+#
+#   >             Octave Up - move up one octave
+#   <             Octave Down - move down one octave
+#
+#   tN            Tempo - set global tempo to N quarter notes per minute. Tempo
+#                 changes affect all axes.
+#                 Default: 120
+#
+#   sR            Set note dynamics to R, which is a rational number
+#                 representing the actual time that notes are held relative
+#                 to their logical length. Valid alues are 0 < R <= 1
+#                 Default: 1
+#
+#   #             Comment - everything on the line following the # character
+#                 is ignored. Notice that this is part of the syntax and that
+#                 the Note command also uses the # character.
+
+
+# And now, an old familiar tune...
+
+#         | . . . : . . . : . . . : . . . | . . . : . . . : . . . : . . . |  (this line does nothing)
+:y l16 t100   # Y axis plays the melody
+
+  o4 s7/8 e e . e . c e . g . . . . . . .                                   # the hook
+
+       s1 c . .<g . . e . . a . b . a g#. g>c . e a . f g . e . c d<b>. .   # unison intro
+          c . .<g . . e . . a . b . a g#. g>c . e a . f g . e . c d<b>. .
+
+          . . g f#f d#. e .<g#a>c .<a>c d . . g f#f d#. e .>c . c c<. . .   # counterpoint x2
+          . . g f#f d#. e .<g#a>c .<a>c d . . d#. . d . . c . . . . . . .
+
+          . . g f#f d#. e .<g#a>c .<a>c d . . g f#f d#. e .>c . c c<. . .
+          . . g f#f d#. e .<g#a>c .<a>c d . . d#. . d . . c . . . . . . .
+
+          c<a>. c . c d . e c .<a g . . .>c<a .>c . c d e . . . . . . . .   # bridge
+          c<a>. c . c d . e c .<a g . . .>e e . e . c e . g . . . . . . .
+
+          e c .<g . . g#. a>f . f<a . . .                                   # variation
+                                      l12 b> a24.24a24.24a  g  f
+                                                      l16 e c .<a g . . . 
+          e c .<g . . g#. a>f . f<a . . .
+                                      l12 b> f24.24f24.24f  e  d
+                                                      l16 c . . . . . . . 
+       s1 c . .<g . . e . . a . b . a g#. g>c . e a . f g . e . c d<b>. .   # reprise
+          c . .<g . . e . . a . b . a g#. g>c . e a . f g . e . c d<b>. .
+
+          . . g f#f d#. e .<g#a>c .<a>c d . . g f#f d#. e .>c . c c<. . .
+          . . g f#f d#. e .<g#a>c .<a>c d . . d#. . d . . c . . . . . . .
+
+          c . .<g . . e .                                                   # game over
+                  l12 t80 a  b  a t60 g# a# g#  g2
+
+#         | . . . : . . . : . . . : . . . | . . . : . . . : . . . : . . . |
+:w l16 t100    # W axis plays the bassline (moves the table on my machine)
+
+  o2 s7/8 d d . d . d d . g . . . g . . .                                   # the hook
+
+  o2  s1  c . .<g . . e . . a . b . a g#. g>c . e a . f g . e . c d<b>. .   # unison intro
+          c . .<g . . e . . a . b . a g#. g>c . e a . f g . e . c d<b>. .
+
+          c . . e . . g . f . . a . .>c<. c . . e . . g . . g . g g .<g>.   # counterpoint x2
+          c . . e . . g . f . . a . .>c<. . .<g#. . a#. .>c . . g g .<g>.
+
+          c . . e . . g . f . . a . .>c<. c . . e . . g . . g . g g .<g>.
+          c . . e . . g . f . . a . .>c<. . .<g#. . a#. .>c . . c c .<g>.
+
+ o1 l16/3 g#   >d#    f8  g     e     c8 <g#   >d#    f8  g     c    <g8    # bridge
+    l4    f       f#      g       a   l16 d d . d . d d . g . . .<g>. . .
+
+ o2       c . . e . . g . f . . a . .>c<. g . . b . .>d . c . .<g . .<g>.   # variation
+          c . . e . . g . f . . a . .>c<.
+                                     l12 <g  g  g  g  a  b
+                                                     l16 >c<g . g c . . .   
+  o2  s1  c . .<g . . e . . a . b . a g#. g>c . e a . f g . e . c d<b>. .   # reprise
+          c . .<g . . e . . a . b . a g#. g>c . e a . f g . e . c d<b>. .
+
+          c . . e . . g . f . . a . .>c<. c . . e . . g . . g . g g .<g>.
+          c . . e . . g . f . . a . .>c<. . .<g#. . a#. .>c . . g g .<g>.
+
+ o2       c . .<g . . e .                                                   # game over
+                   l4 t80 f t60 g#  >c2
