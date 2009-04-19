@@ -134,7 +134,6 @@ File.open ARGV[0] do |muzak|
   line_number = 1
 
   muzak.each_line do |line|
-    line.sub!(/#.*/,"")
     line.downcase!
     line.lstrip!
 
